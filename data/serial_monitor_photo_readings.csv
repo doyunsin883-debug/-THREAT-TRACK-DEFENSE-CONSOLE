@@ -1,9 +1,9 @@
 sample_index,distance_cm,source
-1,10.24,user-provided Arduino Serial Monitor photo
-2,3.70,user-provided Arduino Serial Monitor photo
-3,7.31,user-provided Arduino Serial Monitor photo
-4,5.71,user-provided Arduino Serial Monitor photo
-5,4.53,user-provided Arduino Serial Monitor photo
-6,6.74,user-provided Arduino Serial Monitor photo
-7,5.35,user-provided Arduino Serial Monitor photo
-8,5.04,user-provided Arduino Serial Monitor photo
+1,10.24,original Arduino Serial Monitor photo from build
+2,3.70,original Arduino Serial Monitor photo from build
+3,7.31,original Arduino Serial Monitor photo from build
+4,5.71,original Arduino Serial Monitor photo from build
+5,4.53,original Arduino Serial Monitor photo from build
+6,6.74,original Arduino Serial Monitor photo from build
+7,5.35,original Arduino Serial Monitor photo from build
+8,5.04,original Arduino Serial Monitor photo from build

@@ -12,6 +12,14 @@
 
 > **Scope / 범위** · This is an educational **ultrasonic proximity demonstrator, not a radio-frequency military radar**. A single HC-SR04 cannot identify bearing, track multiple targets, or provide safety-critical collision detection. / 교육·시연용 **초음파 근접 탐지기**이며 군용 전파 레이더가 아닙니다. 센서 1개로 방향·다중 표적·안전 인증된 충돌 감지는 할 수 없습니다.
 
+## Why I built this / 제작 동기
+
+**EN.** I began by connecting an Arduino UNO to an HC-SR04 and checking its actual range readings. After verifying distance measurement, I extended the circuit with three LEDs and a buzzer. My goal was to move beyond displaying a number: I wanted to **interpret whether an object was approaching, judge urgency using distance and estimated time-to-contact, and present the result in an operator-friendly console**. This repository records both my working hardware and the software/control logic I developed through successive iterations.
+
+**KO.** Arduino UNO와 HC-SR04를 직접 연결하고 시리얼 모니터에서 거리 측정값이 나오는 것부터 구현했다. 이후 빨강·노랑·초록 LED와 부저까지 확장했다. 단순히 거리 숫자를 출력하는 데서 끝내지 않고 **물체가 얼마나 빠르게 다가오는지, 얼마나 긴급한지 판단한 뒤 하드웨어와 PC 관제 화면에 직관적으로 표시하는 시스템**을 만드는 것이 목표였다. 이 저장소에는 실제 제작 과정과 단계별 코드·회로·분석 결과를 정리했다.
+
+**Evidence policy / 기록 원칙:** Real build photos are presented as build evidence; the Tkinter screenshot uses clearly labeled simulation mode; Matplotlib model plots explain the alert logic rather than claiming measured accuracy. / 실제 제작 사진, GUI 데모 화면, 이론적 판정 그래프를 구분해 기술했다.
+
 ## Project at a glance / 첫 화면: 실제 사진과 설계도
 
 | **Real prototype photo / 실제 제작 사진** | **CAD wiring diagram / CAD 배선도** |
@@ -34,16 +42,16 @@
 
 | Engineering question / 기술적 질문 | Implementation / 구현 방식 | Validation status / 검증 상태 |
 |---|---|---|
-| Can we read physical range? / 실제 거리 측정 가능한가? | HC-SR04 + Arduino timing | ✅ Observed on user-recorded Serial Monitor / 실제 시리얼 사진 확인 |
-| Can we infer approach? / 접근·이탈을 구분할 수 있는가? | Smoothed finite-difference speed / 거리 차분 및 평활 | ✅ Reported working by builder / 사용자 동작 확인 보고; 정밀 검증 전 |
-| Can we make actionable alerts? / 경보로 바꿀 수 있는가? | Distance + TTC thresholds → 3 LEDs + buzzer | ✅ User-reported hardware operation / 사용자 성공 보고 |
+| Can we read physical range? / 실제 거리 측정 가능한가? | HC-SR04 + Arduino timing | ✅ 직접 촬영한 Arduino Serial Monitor 화면으로 확인 |
+| Can we infer approach? / 접근·이탈을 구분할 수 있는가? | Smoothed finite-difference speed / 거리 차분 및 평활 | ✅ 제작 중 구동 확인 / 정밀도·반복성 검증 전 |
+| Can we make actionable alerts? / 경보로 바꿀 수 있는가? | Distance + TTC thresholds → 3 LEDs + buzzer | ✅ 제작 과정에서 LED·부저 동작 확인 |
 | Can operators inspect the state? / PC에서 관제할 수 있는가? | Serial CSV + Tkinter GUI | ✅ GUI opens; live packet refresh pending / GUI 실행 확인, 실시간 갱신 재검증 필요 |
 
 **What is not claimed / 주장하지 않는 사항:** Object tracking in 2D or 3D, 360° scanning, target identification, military-grade detection, calibration-grade accuracy, false-alarm performance, or a deployed safety product. / 다차원 표적 추적, 360도 탐지, 목표 식별, 군용 성능, 계측기급 정확도, 오경보 성능 및 실제 안전장치 성능은 주장하지 않습니다.
 
 ## Evidence and Matplotlib analysis / 실제 증거 및 Matplotlib 분석
 
-The plots below are reproducible using [`analysis/generate_figures.py`](analysis/generate_figures.py). **One uses only the eight distance values legible in the user's original Serial Monitor photo; the remaining figures visualize the mathematical rules in the firmware and are not experimental results.** / 아래 그래프는 코드로 재현할 수 있습니다. **첫 그래프만 사용자가 촬영한 실제 시리얼 모니터 사진에서 확인한 8개 측정값이며, 나머지는 펌웨어 수학 규칙의 이론적 도식입니다.**
+The plots below are reproducible using [`analysis/generate_figures.py`](analysis/generate_figures.py). **One uses only the eight distance values legible in my original Arduino Serial Monitor photograph; the remaining figures visualize the mathematical rules in the firmware and are not experimental results.** / 아래 그래프는 코드로 재현할 수 있습니다. **첫 그래프만 제작 중 직접 촬영한 시리얼 모니터 사진에서 확인한 8개 측정값이며, 나머지는 펌웨어 수학 규칙의 이론적 도식입니다.**
 
 ### A. Recorded range samples / 시리얼 화면의 실제 거리값
 
@@ -81,9 +89,11 @@ py analysis/generate_figures.py
 | **Arduino IDE firmware excerpt / 실제 아두이노 IDE 코드 촬영본** | **Python graphical interface / 실행된 Python GUI** |
 |:---:|:---:|
 | ![Original Arduino IDE photo, code being prepared for PC CSV output](assets/screenshots/arduino-ide-code-photo.jpg) | ![Tkinter dashboard actual screenshot, demo mode](assets/screenshots/dashboard-demo-screenshot.png) |
-| *User-taken photo of the V5 PC-telemetry output code during an upload attempt; that attempt showed a COM5 error.* / *V5 출력 코드 업로드 시도 중 촬영한 원본 사진. 당시에는 COM5 오류 발생.* | *Actually captured Python program running in clearly labeled simulation mode, not live sensor telemetry.* / *프로그램 실제 실행 캡처이며 데모 가상값으로 표시. 실측 화면 아님.* |
+| *Original photograph from my V5 telemetry coding session during an upload attempt; that attempt showed a COM5 error.* / *V5 출력 코드 업로드 시도 중 촬영한 원본 사진. 당시에는 COM5 오류 발생.* | *Actually captured Python program running in clearly labeled simulation mode, not live sensor telemetry.* / *프로그램 실제 실행 캡처이며 데모 가상값으로 표시. 실측 화면 아님.* |
 
-> **No AI-rendered images are used. / AI 생성 그림 미사용.** Photography is user-provided; figures were produced from Matplotlib; wiring diagrams are manually constructed vector/CAD schematics; GUI capture comes from an executed Tkinter program. / 사진은 사용자가 보낸 원본이며, 그래프는 Matplotlib, 배선도는 직접 제작한 벡터 CAD, UI 캡처는 Python 실행 화면을 사용했습니다.
+> **No AI-rendered images are used. / AI 생성 그림 미사용.** Build photographs were taken during the assembly and debugging process; figures were produced from Matplotlib; wiring diagrams are manually constructed vector/CAD schematics; GUI capture comes from an executed Tkinter program. / 사진은 제작 과정에서 직접 촬영한 기록이며, 그래프는 Matplotlib, 배선도는 직접 제작한 벡터 CAD, UI 캡처는 Python 실행 화면을 사용했습니다.
+
+**Detailed technical design / 기술 상세:** [Korean technical note / 국문 기술 설명](docs/ENGINEERING_NOTE_KO.md) · [English engineering note](docs/ENGINEERING_NOTE_EN.md)
 
 ## How it works / 작동 원리
 
@@ -182,9 +192,9 @@ py -m unittest discover -s tests -v
 |---|---|---|
 | Arduino UNO Blink | ✅ Confirmed / 확인 | Board LED flash validated during build |
 | HC-SR04 range readings | ✅ Confirmed / 확인 | Actual serial-monitor photograph above |
-| Three-state LED warnings | ✅ User-reported success / 성공 보고 | Red, yellow, green LEDs working |
-| Buzzer audio alert | ✅ User-reported success / 성공 보고 | Audible buzzer working |
-| Python GUI startup | ✅ User-reported success / 실행 보고 | Desktop interface opens |
+| Three-state LED warnings | ✅ 제작 중 정상 동작 확인 | Red, yellow, green LEDs working |
+| Buzzer audio alert | ✅ 제작 중 정상 동작 확인 | Audible buzzer working |
+| Python GUI startup | ✅ 실제 프로그램 창 실행 확인 | Desktop interface opens |
 | V5 live Arduino→Python telemetry | ⚠️ Pending re-verification / 재확인 필요 | An observed COM5 port collision blocked a firmware upload; live refresh not yet re-confirmed |
 | LCD and potentiometer features | Not implemented / 미구현 | Future extension only |
 
@@ -201,6 +211,8 @@ py -m unittest discover -s tests -v
 For an actual example of a COM5 conflict / 실제 포트 충돌 화면:
 
 ![Actual COM port upload error](assets/screenshots/com-port-error.jpg)
+
+**Evaluation protocol / 향후 실험 계획:** [Validation methodology (KR/EN)](docs/VALIDATION_PLAN.md)
 
 ## Reproducibility, evaluation plan / 재현성과 후속 검증 설계
 
@@ -221,6 +233,7 @@ The GUI is an HMI prototype that favors separation of sensing, control, and disp
 ├── python/telemetry.py
 ├── python/requirements.txt
 ├── analysis/{generate_figures.py,requirements.txt}
+├── docs/{ENGINEERING_NOTE_KO.md,ENGINEERING_NOTE_EN.md,VALIDATION_PLAN.md}
 ├── data/serial_monitor_photo_readings.csv
 ├── assets/charts/{serial-readings-photo.png,alert-decision-map.png,ttc-model.png}
 ├── assets/diagrams/{wiring-cad.svg,wiring-cad.png,system-flow.svg,system-flow.png,buzzer-breadboard.svg,buzzer-breadboard.png}
@@ -244,4 +257,4 @@ Personal embedded-systems and human–machine interface portfolio / 개인 임�
 
 **Asset provenance / 자료 출처:** [Full source and evidence disclosure](assets/ASSET_PROVENANCE.md) · [Wiring CAD notes](docs/cad/README.md)
 
-**Asset note / 자료 고지:** Hardware and serial-monitor photographs were supplied during this project's build conversation. The CAD diagrams and GUI preview are authored technical illustrations; the GUI screenshot is from a real execution in explicitly labeled `--demo` mode and uses simulated telemetry, not a live sensor reading. / 사진은 제작 과정에서 제공된 실제 촬영 이미지이며, CAD와 관제 화면은 실행된 프로그램의 데모 모드 캡처이며 수치는 가상 데이터입니다.
+**Documentation note / 문서 고지:** Hardware and serial-monitor photographs document my actual build and debugging sessions. The CAD diagrams and GUI preview are authored technical illustrations; the GUI screenshot is from a real execution in explicitly labeled `--demo` mode and uses simulated telemetry, not a live sensor reading. / 사진은 직접 조립하고 개발하면서 촬영한 기록이며, CAD와 관제 화면은 실행된 프로그램의 데모 모드 캡처이며 수치는 가상 데이터입니다.

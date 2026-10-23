@@ -1,7 +1,6 @@
 """Reproduce README Matplotlib graphics using documented sources.
 
-The measured trace is manually transcribed from one user-provided Arduino IDE
-photo. Other plots illustrate the V5 firmware's mathematical decision rules,
+The measured trace is manually transcribed from a photograph taken during my Arduino IDE testing session. Other plots illustrate the V5 firmware's mathematical decision rules,
 not measured experimental performance.
 """
 from pathlib import Path
@@ -27,7 +26,7 @@ plt.rcParams.update({
     'axes.spines.right': False,
 })
 
-# Figure 1: Actual values visible in the user's Serial Monitor photograph.
+# Figure 1: Actual values visible in my original Serial Monitor photograph.
 rows = list(csv.DictReader((ROOT/'data/serial_monitor_photo_readings.csv').open(encoding='utf-8')))
 idx = [int(r['sample_index']) for r in rows]
 values = [float(r['distance_cm']) for r in rows]
@@ -42,7 +41,7 @@ ax.grid(axis='y', alpha=0.26)
 for x, y in zip(idx, values):
     ax.annotate(f'{y:.2f}', (x, y), xytext=(0, 10), textcoords='offset points',
                 ha='center', fontsize=9)
-fig.text(.1, .01, 'Source: user-provided Arduino IDE screenshot; only eight visible values. Not a calibrated test.',
+fig.text(.1, .01, 'Source: original Arduino IDE screenshot from the build; only eight visible values. Not a calibrated test.',
          fontsize=9, color='#555555')
 fig.tight_layout(rect=(0,.04,1,1))
 fig.savefig(OUT/'serial-readings-photo.png', facecolor='white')
