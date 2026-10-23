@@ -1,7 +1,7 @@
 # Reproducible validation plan / 재현 가능한 후속 검증 계획
 
 **Status: proposed, NOT performed. / 상태: 설계 단계, 미실시.**  
-This page sets up tests needed to turn a working demonstration into an evidence-based engineering portfolio. / 작동 시연을 정량 검증 연구로 확장하기 위한 계획이다.
+지금은 작동을 확인한 단계라, 다음에는 실제 측정 성능도 수치로 평가해 보려고 한다. / The prototype works as a demonstration; the next step is to measure its performance.
 
 ## A. Distance accuracy / 거리 측정 정확도
 

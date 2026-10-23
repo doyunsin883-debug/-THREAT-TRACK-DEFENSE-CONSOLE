@@ -5,7 +5,7 @@
 
 ## Why I built it
 
-My initial hardware experiment simply measured the distance between an HC-SR04 ultrasonic sensor and an object. I wanted to turn that one-dimensional reading into actionable information: **whether a target was approaching, how quickly it was approaching, how urgent the situation was, and what feedback an operator should receive**. I implemented the resulting sensing → estimation → rule-based classification → LED/buzzer actuation → desktop monitoring pipeline in stages.
+I began by connecting an HC-SR04 to an Arduino and checking the distance readings. Once that worked, I wanted to do more with the numbers. Knowing that an object is close is useful, but knowing how quickly it's approaching can be even more helpful. So I added speed and TTC estimates, then connected the results to LEDs, a buzzer, and a desktop dashboard.
 
 ## Hardware and pin assignment
 
@@ -41,7 +41,7 @@ Positive speed means the object is approaching the transducer; negative speed me
 | DANGER | Distance ≤ 30 cm or TTC ≤ 1.5 s | Red LED, fast beep |
 | NO SIGNAL | Invalid echo measurement | LEDs off, silence |
 
-The thresholds are programmable **prototype decision rules**, not measured false-alarm or safety-performance guarantees. The different LED colors and sound cadences are intended to reduce the need for continuous numeric monitoring.
+I used different colors and beep patterns so the alert level would be recognizable without constantly reading the numbers. These are **prototype thresholds**; I haven't tested which thresholds would work best under real operating conditions.
 
 [Alert-state diagram](../assets/charts/alert-decision-map.png) · [TTC model](../assets/charts/ttc-model.png)
 
@@ -51,7 +51,7 @@ The firmware sends CSV records in the format `distance,speed,ttc,status`. The Py
 
 [Arduino source](../arduino/ThreatTrack_V5/ThreatTrack_V5.ino) · [Python source](../python/threat_track_dashboard.py) · [Executed demo-mode GUI screenshot](../assets/screenshots/dashboard-demo-screenshot.png)
 
-The Python GUI was observed opening, but successful live V5 serial refresh **remains to be verified** after an observed COM5 access conflict. The screenshot uses clearly labeled simulated values, not live sensor measurements.
+The Python interface opens and the screenshot shows it running in demo mode. The values in that screenshot are simulated. I still need to confirm that V5 live readings update correctly after the COM5 port issue.
 
 ## Evidence and next validation
 

@@ -7,20 +7,13 @@
 [![Stage](https://img.shields.io/badge/Stage-Working%20Prototype-F3AD35)](#project-status--프로젝트-진행-상태)
 [![Tests](https://img.shields.io/badge/Checks-4%20unit%20tests-blue)](tests/test_telemetry.py)
 
-**EN** · A single-axis ultrasonic proximity monitor that estimates approach speed, derives indicative time-to-contact (TTC), and issues three-level LED and buzzer alerts, with a tactical-style Python visualization.  
-**KO** · 초음파 센서로 정면 물체의 거리와 접근 속도를 추정하고, 예상 접촉 시간(TTC)에 따라 3단계 LED·부저 경보를 작동시키는 아두이노 기반 시스템입니다. PC에는 전술형 관제 화면을 표시합니다.
+**한국어** · 아두이노와 초음파 센서로 물체까지의 거리를 측정하고, 접근 속도와 예상 접촉 시간(TTC)을 계산해 위험 단계별로 경고하도록 만들었다. 3색 LED와 부저를 연결했고, Python으로 측정값을 볼 수 있는 관제 화면도 제작했다.
 
-> **Scope / 범위** · This is an educational **ultrasonic proximity demonstrator, not a radio-frequency military radar**. A single HC-SR04 cannot identify bearing, track multiple targets, or provide safety-critical collision detection. / 교육·시연용 **초음파 근접 탐지기**이며 군용 전파 레이더가 아닙니다. 센서 1개로 방향·다중 표적·안전 인증된 충돌 감지는 할 수 없습니다.
+**English** · I built an Arduino-based proximity monitor that combines ultrasonic distance readings with estimated approach speed and time-to-contact (TTC). Three LEDs and a buzzer indicate the alert level, and a Python dashboard displays the measurements.
 
-## Why I built this / 제작 동기
+> **참고 / Note** · HC-SR04를 사용하는 교육용 초음파 근접 감지 프로젝트다. 전파 레이더나 안전 인증 장비는 아니며, 화면에 보이는 회전 스윕은 시각적 효과다. / This is an educational ultrasonic prototype, not an RF radar or certified safety device. The animated sweep is decorative.
 
-**EN.** I began by connecting an Arduino UNO to an HC-SR04 and checking its actual range readings. After verifying distance measurement, I extended the circuit with three LEDs and a buzzer. My goal was to move beyond displaying a number: I wanted to **interpret whether an object was approaching, judge urgency using distance and estimated time-to-contact, and present the result in an operator-friendly console**. This repository records both my working hardware and the software/control logic I developed through successive iterations.
-
-**KO.** Arduino UNO와 HC-SR04를 직접 연결하고 시리얼 모니터에서 거리 측정값이 나오는 것부터 구현했다. 이후 빨강·노랑·초록 LED와 부저까지 확장했다. 단순히 거리 숫자를 출력하는 데서 끝내지 않고 **물체가 얼마나 빠르게 다가오는지, 얼마나 긴급한지 판단한 뒤 하드웨어와 PC 관제 화면에 직관적으로 표시하는 시스템**을 만드는 것이 목표였다. 이 저장소에는 실제 제작 과정과 단계별 코드·회로·분석 결과를 정리했다.
-
-**Evidence policy / 기록 원칙:** Real build photos are presented as build evidence; the Tkinter screenshot uses clearly labeled simulation mode; Matplotlib model plots explain the alert logic rather than claiming measured accuracy. / 실제 제작 사진, GUI 데모 화면, 이론적 판정 그래프를 구분해 기술했다.
-
-## Project at a glance / 첫 화면: 실제 사진과 설계도
+## Build photos & interface / 제작 사진과 인터페이스
 
 | **Real prototype photo / 실제 제작 사진** | **CAD wiring diagram / CAD 배선도** |
 |:---:|:---:|
@@ -34,48 +27,65 @@
 
 **Design files / 설계 파일:** [Editable AutoCAD-compatible DXF](docs/cad/threat-track-schematic.dxf) · [SVG wiring schematic](assets/diagrams/wiring-cad.svg) · [System flow](assets/diagrams/system-flow.svg)
 
-## Engineering objective / 프로젝트의 핵심 목적
+## Why I built it / 제작 동기
 
-**EN — Problem:** A raw distance number is not an actionable warning. An approaching object at 75 cm may require attention sooner than an object stationary at 50 cm. The design question is how to turn **one low-cost, single-axis ultrasonic measurement** into interpretable proximity telemetry and escalating local/desktop alerts.
+처음에는 초음파 센서를 연결해 거리값을 읽는 것부터 시작했다. 시리얼 모니터에서 수치가 바뀌는 걸 확인하고 나니, 이 데이터를 단순한 숫자가 아니라 **상황을 판단하는 정보**로 만들어 보고 싶었다.
 
-**KO — 문제 정의:** 거리 숫자 하나만으로는 위험 상황을 판단하기 어렵습니다. 75cm 거리에서 빠르게 접근하는 물체는 50cm 거리에서 정지해 있는 물체보다 먼저 주의할 필요가 있을 수 있습니다. 따라서 **저비용 단일축 초음파 센서**에서 얻는 정보를 해석 가능한 거리·접근 속도·TTC·경보 단계로 전환하는 것이 핵심 목적입니다.
+물체가 50cm 떨어져 있어도 가만히 있는 경우와 빠르게 다가오는 경우의 의미는 다르다. 그래서 연속된 거리값으로 접근 속도를 추정하고, TTC까지 계산해 경고를 다르게 주는 방식을 구현했다. 최종적으로는 LED·부저·PC 화면에 같은 위험 상태가 표시되도록 연결했다.
 
-| Engineering question / 기술적 질문 | Implementation / 구현 방식 | Validation status / 검증 상태 |
+**English** · I started by getting distance readings from the HC-SR04. Once that worked, I wanted to do more than display a number. An object sitting at 50 cm isn't the same as one moving quickly toward the sensor. That led me to estimate approach speed and TTC, then connect the alert logic to LEDs, a buzzer, and a desktop interface.
+
+**어떤 점에 집중했나? / What I focused on**
+
+| Area | Implementation / 구현 |
+|---|---|
+| Sensing / 측정 | HC-SR04로 정면 거리 측정 |
+| Estimation / 추정 | 거리 변화로 접근 속도·TTC 계산 |
+| Alerts / 경보 | SAFE·WARNING·DANGER를 LED·부저로 전달 |
+| Interface / 관제 | Python에서 거리·속도·상태·기록 표시 |
+
+## What the system is designed to do / 핵심 목표
+
+**문제는 거리 하나로는 급한 상황을 구분하기 어렵다는 점이었다.** 그래서 거리와 움직임을 함께 고려하도록 했다. 예를 들어 물체가 70cm보다 멀리 있더라도 빠르게 접근하면 TTC에 따라 먼저 경고할 수 있다.
+
+**English** · Distance alone doesn't always tell the whole story. By combining range with an estimate of movement, the system can warn earlier when an object is approaching quickly, even before it crosses a fixed distance threshold.
+
+| Question / 확인할 내용 | Approach / 구현 방식 | Status / 확인 상태 |
 |---|---|---|
-| Can we read physical range? / 실제 거리 측정 가능한가? | HC-SR04 + Arduino timing | ✅ 직접 촬영한 Arduino Serial Monitor 화면으로 확인 |
-| Can we infer approach? / 접근·이탈을 구분할 수 있는가? | Smoothed finite-difference speed / 거리 차분 및 평활 | ✅ 제작 중 구동 확인 / 정밀도·반복성 검증 전 |
-| Can we make actionable alerts? / 경보로 바꿀 수 있는가? | Distance + TTC thresholds → 3 LEDs + buzzer | ✅ 제작 과정에서 LED·부저 동작 확인 |
-| Can operators inspect the state? / PC에서 관제할 수 있는가? | Serial CSV + Tkinter GUI | ✅ GUI opens; live packet refresh pending / GUI 실행 확인, 실시간 갱신 재검증 필요 |
+| 실제 거리 측정이 되는가? / Is the sensor producing readings? | HC-SR04 + Arduino Serial Monitor | ✅ 실제 시리얼 출력 확인 |
+| 접근과 이탈을 구분하는가? / Does it detect approach? | 거리 차분 + 평활 처리 | ✅ 동작 확인, 정확도 검증 전 |
+| 경고 단계가 작동하는가? / Do the alerts work? | 3색 LED + 부저 | ✅ 제작 중 작동 확인 |
+| PC에서 상태를 볼 수 있는가? / Can the desktop UI show the state? | Python + Tkinter | ✅ 프로그램 창 실행, 실시간 통신 재확인 필요 |
 
-**What is not claimed / 주장하지 않는 사항:** Object tracking in 2D or 3D, 360° scanning, target identification, military-grade detection, calibration-grade accuracy, false-alarm performance, or a deployed safety product. / 다차원 표적 추적, 360도 탐지, 목표 식별, 군용 성능, 계측기급 정확도, 오경보 성능 및 실제 안전장치 성능은 주장하지 않습니다.
+센서 하나로 물체의 종류나 각도, 다중 표적 위치를 추적하지는 못한다. 정확도·오경보율 역시 아직 실험으로 검증하지 않았으므로 성능 수치로 표현하지 않았다. / A single sensor cannot identify targets, measure bearing, or track multiple objects. Accuracy and false-alarm performance have not yet been validated.
 
-## Evidence and Matplotlib analysis / 실제 증거 및 Matplotlib 분석
+## Data & Matplotlib / 기록한 데이터와 계산 그래프
 
-The plots below are reproducible using [`analysis/generate_figures.py`](analysis/generate_figures.py). **One uses only the eight distance values legible in my original Arduino Serial Monitor photograph; the remaining figures visualize the mathematical rules in the firmware and are not experimental results.** / 아래 그래프는 코드로 재현할 수 있습니다. **첫 그래프만 제작 중 직접 촬영한 시리얼 모니터 사진에서 확인한 8개 측정값이며, 나머지는 펌웨어 수학 규칙의 이론적 도식입니다.**
+I generated these plots with [`analysis/generate_figures.py`](analysis/generate_figures.py). **The first chart uses eight distance readings visible in the original Serial Monitor photo. The other two explain the firmware logic; they are not experimental performance results.** / 세 그래프 모두 코드로 다시 만들 수 있다. **첫 그래프는 직접 촬영한 시리얼 모니터의 거리값 8개**, 나머지 두 개는 코드에 들어간 판단 규칙을 나타낸다. 실측 성능 결과와 계산 그래프를 구분했다.
 
 ### A. Recorded range samples / 시리얼 화면의 실제 거리값
 
 ![Actual Arduino range values transcribed from photograph](assets/charts/serial-readings-photo.png)
 
-**EN:** Eight visible HC-SR04 range readings, in display order; no timestamps or ground-truth reference distance were supplied. Therefore this is evidence of sensor output, **not an accuracy or speed benchmark**.
+**English** · I plotted eight readings visible in the Serial Monitor photo. Since I didn't record reference distances or timestamps, this shows that the sensor produced readings—not how accurate or fast it was.
 
-**KO:** 사진에서 읽을 수 있는 HC-SR04 거리 8개를 표시 순서대로 옮겼습니다. 타임스탬프나 실제 기준 거리 데이터가 없어 **정확도 검증·속도 추정 결과로 해석하지 않습니다.** Values are recorded in [`data/serial_monitor_photo_readings.csv`](data/serial_monitor_photo_readings.csv).
+**한국어** · 시리얼 모니터에 보이는 거리값 8개를 순서대로 옮겼다. 기준 거리와 측정 시각은 기록하지 않았기 때문에, 이 그래프만으로 정확도나 속도를 평가할 수는 없다. 원본 수치는 [`data/serial_monitor_photo_readings.csv`](data/serial_monitor_photo_readings.csv).
 
 ### B. Why distance and speed both matter / 거리와 속도를 함께 고려하는 이유
 
 ![Distance-speed alert classification defined by firmware](assets/charts/alert-decision-map.png)
 
-**EN:** Deterministic alert states from the exact V5 distance and TTC thresholds. Each colored region is the **software's decision**, not an observed classification accuracy. At high approach speed, even an object outside the 70-cm caution band can enter WARNING or DANGER via TTC.
+**English** · The colors show which alert the V5 code would select for each distance–speed combination. They describe the decision rule, **not measured detection accuracy**.
 
-**KO:** V5 코드에 정의된 거리 및 TTC 경계로 색 영역을 계산했습니다. **색 영역은 소프트웨어의 판정 규칙이지 실험적으로 측정한 정확도가 아닙니다.** 접근 속도가 높으면 70cm 밖에서도 TTC 기준에 따라 경고가 먼저 발생할 수 있습니다.
+**한국어** · 거리와 접근 속도의 조합에 따라 어떤 경고가 켜지는지 그렸다. 실제 위험 탐지 정확도를 실험한 그래프가 아니라, **작성한 코드의 경고 기준**을 시각화한 것이다.
 
 ### C. Interpreting TTC / 예상 접촉 시간의 물리적 의미
 
 ![Constant speed TTC equation visualization](assets/charts/ttc-model.png)
 
-**EN:** `TTC = distance / approaching_speed` under a constant-speed, directly approaching object assumption. This model demonstrates how identical range can imply different urgency depending on relative speed.
+**English** · With a constant approach speed, TTC is simply distance divided by speed. The curves show why an object moving faster can need attention sooner, even at the same distance.
 
-**KO:** 일정한 속도로 센서 정면에 접근한다고 가정했을 때 `TTC = 거리 / 접근 속도`를 시각화합니다. 같은 거리라도 접근 속도가 다르면 위험 판단 시점이 달라짐을 설명합니다.
+**한국어** · 같은 거리에 있더라도 빠르게 다가오는 물체는 TTC가 더 짧다. 일정한 속도로 정면에 접근한다는 가정 아래 그 관계를 나타냈다.
 
 **Recreate all three figures / 그래프 전체 재생성:**
 
@@ -84,7 +94,7 @@ py -m pip install -r analysis/requirements.txt
 py analysis/generate_figures.py
 ```
 
-## Actual firmware and UI capture / 실제 개발 화면 기록
+## Development screenshots / 개발 과정 기록
 
 | **Arduino IDE firmware excerpt / 실제 아두이노 IDE 코드 촬영본** | **Python graphical interface / 실행된 Python GUI** |
 |:---:|:---:|
@@ -214,11 +224,15 @@ For an actual example of a COM5 conflict / 실제 포트 충돌 화면:
 
 **Evaluation protocol / 향후 실험 계획:** [Validation methodology (KR/EN)](docs/VALIDATION_PLAN.md)
 
-## Reproducibility, evaluation plan / 재현성과 후속 검증 설계
+## What I'd test next / 다음에 검증해 보고 싶은 것
 
-**Reproducibility / 재현:** Arduino firmware is versioned, serial packets are parsed and checked for malformed/out-of-range data, Python demo mode is explicitly separated from physical measurements, and charts are generated from tracked CSV data plus deterministic equations. / 펌웨어 버전을 관리하고, 패킷 파서에서 오염 데이터를 걸러내며, 시뮬레이션과 실측을 구분하고, CSV 및 계산식을 기반으로 그래프를 재생성합니다.
+아두이노 코드, 시리얼 데이터 파서, 그래프 생성 코드를 저장소에 함께 넣었다. Python 데모 값은 실제 측정값과 구분하고, Matplotlib 그래프는 CSV와 코드의 계산식으로 다시 생성할 수 있도록 구성했다.
 
-**Next controlled experiment / 다음 검증 실험:** Fix a flat target at known reference distances (e.g., 10–150 cm), collect repeated measurements and log timestamps; estimate bias, MAE, variation and invalid-echo fraction by distance; repeat controlled approach/retreat trajectories; measure warning response latency. These experiments are **proposed, not performed**. / 기준 거리를 고정한 반복 측정과 타임스탬프 기록을 추가해 편향, MAE, 분산, 무효 반사 비율, 경보 지연을 측정할 계획입니다. **아직 수행하지 않은 실험입니다.**
+**English** · The repository includes the Arduino firmware, serial parser, and plotting code. Simulated UI data is labeled separately from physical measurements, and the figures can be regenerated from the stored inputs.
+
+다음에는 기준 거리를 고정하고 여러 번 측정해 오차를 비교해 보고 싶다. 움직이는 물체의 기준 궤적도 기록하면 접근 속도와 TTC의 오차, 경고가 바뀌는 데 걸리는 시간까지 살펴볼 수 있다. **아직 진행하지 않은 실험이다.**
+
+**English** · My next step is to collect repeated measurements at known distances, compare estimated speed with a reference trajectory, and measure how quickly the alert responds. **Those tests haven't been carried out yet.**
 
 The GUI is an HMI prototype that favors separation of sensing, control, and display. The sweeping radar graphic is stylistic only and does not convey bearing information. / GUI는 센싱·제어·표시 계층을 분리한 HMI 실험이며, 레이더 회전 효과는 시각적 표현일 뿐 방위각을 측정하지 않습니다.
 
@@ -243,11 +257,11 @@ The GUI is an HMI prototype that favors separation of sensing, control, and disp
 └── tests/test_telemetry.py
 ```
 
-## Engineering limitations / 기술적 한계
+## Limits / 구현 범위와 한계
 
-**EN:** This device estimates one-dimensional range, not object identity or direction. Moving hands and reflective surfaces cause noise, and TTC assumes constant relative speed. An animated radar sweep in the GUI is **purely stylistic**. No false-alarm rates, precision, or deployment performance are claimed without a controlled validation experiment. Not for real military, security, or collision-prevention use.
+**English** · The system measures forward distance, not target identity or direction. Moving objects and reflective surfaces can make the readings fluctuate. The radar sweep is visual styling only, and I haven't measured accuracy, false-alarm rate, or real-world reliability.
 
-**KO:** 단일 센서로 측정하는 값은 정면 거리 하나이며 물체의 종류나 방향은 식별하지 못합니다. 손 움직임과 반사 표면 때문에 측정 오차가 발생하고 TTC는 접근 속도가 일정하다는 가정입니다. 화면의 레이더 회전 효과는 **시각적 연출**에 불과합니다. 검출 정확도·오경보율·실제 운용 성능은 검증 전까지 주장하지 않습니다. 실제 군사·보안·충돌 방지 용도로 사용하지 마세요.
+**한국어** · 지금은 센서 정면의 거리만 측정할 수 있고 물체의 종류나 방향은 구분하지 못한다. 반사면과 움직임에 따라 측정값이 흔들릴 수 있으며, TTC에도 일정한 접근 속도라는 가정이 들어간다. 아직 정확도나 오경보율을 검증한 단계가 아니므로 실제 안전장치나 군용 탐지기로 사용할 수는 없다.
 
 ## Author / 제작
 
@@ -257,4 +271,4 @@ Personal embedded-systems and human–machine interface portfolio / 개인 임�
 
 **Asset provenance / 자료 출처:** [Full source and evidence disclosure](assets/ASSET_PROVENANCE.md) · [Wiring CAD notes](docs/cad/README.md)
 
-**Documentation note / 문서 고지:** Hardware and serial-monitor photographs document my actual build and debugging sessions. The CAD diagrams and GUI preview are authored technical illustrations; the GUI screenshot is from a real execution in explicitly labeled `--demo` mode and uses simulated telemetry, not a live sensor reading. / 사진은 직접 조립하고 개발하면서 촬영한 기록이며, CAD와 관제 화면은 실행된 프로그램의 데모 모드 캡처이며 수치는 가상 데이터입니다.
+**Documentation note / 문서 고지:** Hardware and serial-monitor photographs document my actual build and debugging sessions. The CAD files explain the circuit connections, and the Python GUI screenshot was taken in `--demo` mode, so its numbers are simulated. / 사진은 직접 조립하고 개발하면서 촬영한 기록이며, CAD는 배선 연결을 정리한 도면이고, Python GUI 사진은 데모 모드에서 실행한 화면이라 숫자는 가상 데이터다.
